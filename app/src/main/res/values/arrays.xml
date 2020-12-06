@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="difficulties">
+        <item>Easy</item>
+        <item>Hard</item>
+        <item>You Died</item>
+    </string-array>
+</resources>

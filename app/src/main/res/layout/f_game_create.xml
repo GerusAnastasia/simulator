@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/player_name_layout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:hintEnabled="true"
+        android:hint="Player Name"
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/player_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <segmented_control.widget.custom.android.com.segmentedcontrol.SegmentedControl
+        android:id="@+id/player_difficulty"
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:columnCount="3"
+        app:distributeEvenly="true"
+        app:textVerticalPadding="12dp"
+        app:radius="8dp"
+        app:segments="@array/difficulties"
+        android:layout_below="@id/player_name_layout"
+        app:selectedStrokeColor="@color/colorPrimary"
+        app:unSelectedStrokeColor="@color/colorPrimary"
+        app:selectedTextColor="@android:color/white"
+        app:selectedBackgroundColor="@color/colorPrimary"
+        app:unSelectedTextColor="@color/colorPrimary"
+        app:strokeWidth="1.5dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/player_create"
+        android:text="Create"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/player_difficulty"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

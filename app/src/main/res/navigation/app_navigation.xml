@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_navigation"
+    app:startDestination="@id/fragment_menu">
+    <fragment
+        android:id="@+id/fragment_menu"
+        android:name="com.theevilroot.vmsis.simulator.menu.MenuFragment"
+        tools:layout="@layout/f_menu" />
+
+    <fragment
+        android:id="@+id/fragment_session"
+        android:name="com.theevilroot.vmsis.simulator.session.SessionFragment"
+        tools:layout="@layout/f_session"/>
+
+    <fragment
+        android:id="@+id/fragment_game_create"
+        android:name="com.theevilroot.vmsis.simulator.game.create.CreateGameFragment"
+        tools:layout="@layout/f_game_create" />
+
+
+</navigation>
