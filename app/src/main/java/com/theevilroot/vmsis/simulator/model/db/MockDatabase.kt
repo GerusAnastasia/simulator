@@ -22,20 +22,66 @@ class MockDatabase : ISimulatorDatabase {
         playerList.add(player)
     }
 
-    override fun newSession(p: Player): Session? {
-        val persistentState = stateList[p.id]
-            ?: return null
+    /**
+     * Create session from player by it's persistent state
+     * or create a new session without persistent state
+     */
+    override fun getSession(player: Player): Session {
+        val persistentState = stateList[player.id]
+            ?: return Session(player)
 
         with(persistentState) {
             val semester = Semester(currentSemester, semestersSessions, requiredPerformance)
             val stats = Stats(health, performance)
-            val player = Player(playerId, playerName, difficulty)
+            val newPlayer = Player(playerId, playerName, difficulty)
             val metrics = Metrics()
 
-            return Session(player, sessionStartTime,
+            return Session(newPlayer, sessionStartTime,
                 semester, metrics, stats,
                 currentSessionIndex, currentActions)
         }
+    }
+
+    override fun updatePersistentState(currentSession: Session, result: SessionResult) {
+        val persistentState = if (result.actionResult in setOf(Session.ActionResult.NEXT_SESSION,
+                Session.ActionResult.NEXT_SEMESTER) && result.nextSession != null) {
+                    result.nextSession.run {
+                PersistentState(
+                    player.id,
+                    player.name,
+                    player.difficulty,
+                    semester.index,
+                    semester.sessionsCount,
+                    semester.requiredPerformance,
+                    stats.health,
+                    stats.performance,
+                    actions,
+                    startTime,
+                    sessionIndex,
+                    false,
+                    result.actionResult
+                )
+            }
+        } else {
+            currentSession.run {
+                PersistentState(
+                    player.id,
+                    player.name,
+                    player.difficulty,
+                    semester.index,
+                    semester.sessionsCount,
+                    semester.requiredPerformance,
+                    stats.health,
+                    stats.performance,
+                    actions,
+                    startTime,
+                    sessionIndex,
+                    true,
+                    result.actionResult
+                )
+            }
+        }
+        stateList[persistentState.playerId] = persistentState
     }
 
 }

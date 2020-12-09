@@ -1,5 +1,7 @@
 package com.theevilroot.vmsis.simulator.model
 
+import com.theevilroot.vmsis.simulator.model.actions.BaseAction
+
 data class SessionResult (
     val nextSession: Session?,
     val actionResult: Session.ActionResult,
@@ -28,6 +30,15 @@ data class Session (
         stats,
         sessionIndex,
         actions)
+
+    constructor(player: Player): this(
+        player,
+        System.currentTimeMillis(),
+        Semester(player),
+        Metrics(),
+        Stats(100, 100),
+        0,
+        nextActions(Semester(player), player, 0))
 
     enum class ActionResult {
         NEXT_SESSION,
@@ -68,8 +79,14 @@ data class Session (
     }
 
     companion object {
-        private fun nextActions(semester: Semester, player: Player, index: Int): List<IAction> {
-            return listOf()
+        fun nextActions(semester: Semester, player: Player, sessionIndex: Int): List<IAction> {
+            return listOf(
+                BaseAction("Die", -101, 0),
+                BaseAction("Expel", 0, -101),
+                BaseAction("Nothing", 0, 0),
+                BaseAction("+Half", 50, 50),
+                BaseAction("-Half", 50, 50)
+            )
             TODO("Generate actions")
         }
     }

@@ -1,6 +1,7 @@
 package com.theevilroot.vmsis.simulator.game.create
 
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialDialogs
@@ -19,26 +20,21 @@ import kotlin.random.Random
 class CreateGameViewModel(private val database: ISimulatorDatabase) : ViewModel() {
 
     val inputData: MutableLiveData<Pair<String, Int>> = MutableLiveData()
-    private val playerIdData = inputData.map { (name, diff) ->
+    val playerIdData = inputData.map { (name, diff) ->
         val id = Random.nextInt()
         val player = Player(id, name, diff)
         database.addPlayer(player)
         player
     }
-    val sessionData: LiveData<Session?> = playerIdData.map {
-        database.newSession(it)
-    }
-
-
 }
 
-class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Session?> {
+class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Player> {
 
     private val database by instance<ISimulatorDatabase>()
     private val viewModel by createViewMode()
 
     override fun View.onView() {
-        viewModel.sessionData.observe(this@CreateGameFragment, this@CreateGameFragment)
+        viewModel.playerIdData.observe(this@CreateGameFragment, this@CreateGameFragment)
         player_create.setOnClickListener(::onPlayerCreate)
         player_create.isEnabled = false
         player_difficulty.setOnSegmentSelectRequestListener {
@@ -47,12 +43,8 @@ class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Sessio
         }
     }
 
-    override fun onChanged(t: Session?) {
-        if (t == null) {
-            snackBar("Error occurred while creating session. Please, try again")
-        } else {
-            findNavController().navigate(R.id.fragment_session)
-        }
+    override fun onChanged(t: Player) {
+        findNavController().navigate(R.id.fragment_session, bundleOf("player" to t))
     }
 
     private fun snackBar(message: String, duration: Int = Snackbar.LENGTH_INDEFINITE, block: Snackbar.() -> Unit = { }) =

@@ -12,4 +12,6 @@ data class PersistentState(
     val currentActions: List<IAction>,
     val sessionStartTime: Long,
     val currentSessionIndex: Int,
+    val isFinished: Boolean,
+    val result: Session.ActionResult
 )
