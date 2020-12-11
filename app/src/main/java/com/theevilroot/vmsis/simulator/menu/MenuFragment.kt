@@ -3,6 +3,7 @@ package com.theevilroot.vmsis.simulator.menu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.theevilroot.vmsis.simulator.R
 import com.theevilroot.vmsis.simulator.core.CoreFragment
 import com.theevilroot.vmsis.simulator.core.CoreViewModelFactory
+import com.theevilroot.vmsis.simulator.model.GameInfo
 import com.theevilroot.vmsis.simulator.model.Player
 import com.theevilroot.vmsis.simulator.model.db.ISimulatorDatabase
 import kotlinx.android.synthetic.main.f_menu.*
@@ -22,10 +24,10 @@ import org.kodein.di.generic.instance
 sealed class AbstractMenuItemHolder(itemView: View): RecyclerView.ViewHolder(itemView)
 
 class MenuItemHolder (itemView: View): AbstractMenuItemHolder(itemView) {
-    fun bind(item: Player, listener: View.OnClickListener) = with(itemView) {
-        setOnClickListener(listener)
-        player_name.text = item.name
-        difficulty.text = "Difficulty: ${item.difficulty}"
+    fun bind(item: GameInfo, listener: (GameInfo) -> Unit) = with(itemView) {
+        setOnClickListener { listener(item) }
+        player_name.text = item.player.name
+        difficulty.text = "Difficulty: ${item.player.difficulty}"
     }
 }
 
@@ -33,19 +35,19 @@ class NewMenuItemHolder (itemView: View) : AbstractMenuItemHolder(itemView) {
 
     fun bind(listener: View.OnClickListener) = with(itemView) {
         new_game.setOnClickListener(listener)
-        setOnClickListener {  }
+        setOnClickListener(null)
     }
 
 }
 
 class MenuItemAdapter (
     private val newListener: View.OnClickListener,
-    private val itemListener: View.OnClickListener
-    ) : RecyclerView.Adapter<AbstractMenuItemHolder>() {
+    private val itemListener: (GameInfo) -> Unit
+) : RecyclerView.Adapter<AbstractMenuItemHolder>() {
 
-    private val data: MutableList<Player> = mutableListOf()
+    private val data: MutableList<GameInfo> = mutableListOf()
 
-    fun updateData(d: List<Player>) {
+    fun updateData(d: List<GameInfo>) {
         data.clear()
         data.addAll(d)
         notifyDataSetChanged()
@@ -75,10 +77,18 @@ class MenuItemAdapter (
 
 class MenuViewModel (private val database: ISimulatorDatabase) : ViewModel() {
 
-    val playersData: MutableLiveData<List<Player>?> = MutableLiveData(null)
+    private val playersData: MutableLiveData<List<Player>?> = MutableLiveData()
+    val gamesData = playersData.switchMap {
+        liveData {
+            if (it == null)
+                emit(null)
+            else emit(it.mapNotNull { database.getGameInfo(it) })
+        }
+    }
 
-    init {
-        playersData.postValue(null)
+    val startGamePlayer: MutableLiveData<Player> = MutableLiveData()
+    val stateData = startGamePlayer.switchMap {
+        liveData { emit(database.getGameInfo(it)) }
     }
 
     fun updatePlayersList() {
@@ -86,10 +96,10 @@ class MenuViewModel (private val database: ISimulatorDatabase) : ViewModel() {
     }
 }
 
-class MenuFragment : CoreFragment(R.layout.f_menu), Observer<List<Player>?> {
+class MenuFragment : CoreFragment(R.layout.f_menu), Observer<List<GameInfo>?> {
 
     private val database by instance<ISimulatorDatabase>()
-    private val viewModel by menuViewModel()
+    private val viewModel by createViewModel<MenuViewModel> { database }
     private val adapter by createMenuAdapter()
 
     override fun View.onView() {
@@ -98,29 +108,32 @@ class MenuFragment : CoreFragment(R.layout.f_menu), Observer<List<Player>?> {
             it.adapter = adapter
         }
 
-        viewModel.playersData.observe(this@MenuFragment, this@MenuFragment)
+        viewModel.gamesData.observe(this@MenuFragment, this@MenuFragment)
+        viewModel.stateData.observe(this@MenuFragment, Observer {
+            val state = it ?: return@Observer
+
+           findNavController().navigate(if (state.isFinished)
+               R.id.fragment_game_finish
+           else R.id.fragment_session, bundleOf("player" to state.player))
+        })
         viewModel.updatePlayersList()
     }
 
-    private fun onItemClicked(v: View) {
-
+    private fun onItemClicked(info: GameInfo) {
+        viewModel.startGamePlayer.postValue(info.player)
     }
+
     private fun onNewClicked(v: View) {
         findNavController().navigate(R.id.fragment_game_create)
     }
 
-    override fun onChanged(t: List<Player>?) {
+    override fun onChanged(t: List<GameInfo>?) {
         if (t == null) {
             menu_progress.visibility = View.VISIBLE
         } else {
             menu_progress.visibility = View.GONE
             adapter.updateData(t)
         }
-    }
-
-    private fun menuViewModel() = lazy {
-        ViewModelProvider(this@MenuFragment, CoreViewModelFactory(database))
-            .get(MenuViewModel::class.java)
     }
 
     private fun createMenuAdapter() = lazy {

@@ -1,5 +1,6 @@
 package com.theevilroot.vmsis.simulator.model
 
+import android.util.Log
 import com.theevilroot.vmsis.simulator.model.actions.BaseAction
 
 data class SessionResult (
@@ -57,12 +58,12 @@ data class Session (
             return SessionResult(null, result)
 
         val newIndex = if (isSemesterFinished) 0 else sessionIndex + 1
-        val newSemester = semester + player
+        val newSemester = semester + (player to isSemesterFinished)
         val newSession = Session(this, newSemester,
             metrics + action, newStats, newIndex,
             nextActions(semester, player, newIndex))
 
-        return SessionResult(newSession, result)
+        return SessionResult(newSession, result).also { Log.d("RESULT", it.toString()) }
     }
 
     private fun checkStats(isSemesterFinished: Boolean): ActionResult = with(stats) {
@@ -85,7 +86,7 @@ data class Session (
                 BaseAction("Expel", 0, -101),
                 BaseAction("Nothing", 0, 0),
                 BaseAction("+Half", 50, 50),
-                BaseAction("-Half", 50, 50)
+                BaseAction("-Half", -50, -50)
             )
             TODO("Generate actions")
         }

@@ -2,12 +2,18 @@ package com.theevilroot.vmsis.simulator.core
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.theevilroot.vmsis.simulator.main.MainActivity
+import com.theevilroot.vmsis.simulator.menu.MenuViewModel
+import com.theevilroot.vmsis.simulator.model.Player
+import com.theevilroot.vmsis.simulator.model.db.ISimulatorDatabase
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.kodein
@@ -31,6 +37,16 @@ abstract class CoreFragment (@LayoutRes private val layoutRes: Int) : Fragment()
                     " from ${activity?.javaClass?.simpleName} because ${T::class.java.simpleName}" +
                     "is required")
         activity as T
+    }
+
+    fun <T: Parcelable> fromArgs(name: String) = lazy {
+        arguments?.getParcelable<T>(name)
+                ?: throw RuntimeException("${this.javaClass.simpleName} should have argument `$name`")
+    }
+
+    inline fun <reified T: ViewModel> createViewModel(crossinline database: () -> ISimulatorDatabase) = lazy {
+        ViewModelProvider(this, CoreViewModelFactory(database()))
+                .get(T::class.java)
     }
 
 }

@@ -42,6 +42,25 @@ class MockDatabase : ISimulatorDatabase {
         }
     }
 
+    override fun getGameInfo(player: Player): GameInfo? {
+        val persistentState = stateList[player.id]
+                ?: return null
+
+        val newPlayer = Player(persistentState.playerId,
+                persistentState.playerName,
+                persistentState.difficulty)
+        val stats = Stats(persistentState.health, persistentState.performance)
+        val semester = Semester(persistentState.currentSemester,
+                persistentState.semestersSessions,
+                persistentState.requiredPerformance)
+        val metrics = Metrics()
+
+        return GameInfo(newPlayer, stats,
+                metrics, semester,
+                persistentState.isFinished,
+                persistentState.result)
+    }
+
     override fun updatePersistentState(currentSession: Session, result: SessionResult) {
         val persistentState = if (result.actionResult in setOf(Session.ActionResult.NEXT_SESSION,
                 Session.ActionResult.NEXT_SEMESTER) && result.nextSession != null) {

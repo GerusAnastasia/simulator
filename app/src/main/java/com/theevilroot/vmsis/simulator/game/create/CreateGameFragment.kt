@@ -4,6 +4,7 @@ import android.view.View
 import androidx.core.os.bundleOf
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.google.android.material.dialog.MaterialDialogs
 import com.google.android.material.snackbar.Snackbar
 import com.theevilroot.vmsis.simulator.R
@@ -31,7 +32,7 @@ class CreateGameViewModel(private val database: ISimulatorDatabase) : ViewModel(
 class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Player> {
 
     private val database by instance<ISimulatorDatabase>()
-    private val viewModel by createViewMode()
+    private val viewModel by createViewModel<CreateGameViewModel> { database }
 
     override fun View.onView() {
         viewModel.playerIdData.observe(this@CreateGameFragment, this@CreateGameFragment)
@@ -44,11 +45,10 @@ class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Player
     }
 
     override fun onChanged(t: Player) {
-        findNavController().navigate(R.id.fragment_session, bundleOf("player" to t))
+        findNavController().navigate(R.id.fragment_session,
+                bundleOf("player" to t),
+                navOptions { launchSingleTop = true })
     }
-
-    private fun snackBar(message: String, duration: Int = Snackbar.LENGTH_INDEFINITE, block: Snackbar.() -> Unit = { }) =
-        view?.let { Snackbar.make(it, message, duration).apply(block).show() }
 
     private fun onPlayerCreate(v: View) {
         if (!player_difficulty.hasSelectedSegment())
@@ -60,11 +60,6 @@ class CreateGameFragment : CoreFragment(R.layout.f_game_create), Observer<Player
         val diff = player_difficulty.lastSelectedAbsolutePosition
         val name = player_name.text.toString()
         viewModel.inputData.postValue(name to diff)
-    }
-
-    private fun createViewMode() = lazy {
-        ViewModelProvider(this@CreateGameFragment, CoreViewModelFactory(database))
-            .get(CreateGameViewModel::class.java)
     }
 
 }

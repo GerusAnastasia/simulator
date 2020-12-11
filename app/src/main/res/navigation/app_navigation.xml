@@ -19,11 +19,21 @@
         android:name="com.theevilroot.vmsis.simulator.game.create.CreateGameFragment"
         tools:layout="@layout/f_game_create" />
 
+    <fragment
+        android:id="@+id/fragment_game_finish"
+        android:name="com.theevilroot.vmsis.simulator.game.finish.GameFinishFragment"
+        tools:layout="@layout/f_game_finish" />
+
     <action android:id="@+id/show_session_fragment">
         <argument android:name="player"
             app:argType="com.theevilroot.vmsis.simulator.model.Player"
             app:nullable="false" />
+    </action>
 
+    <action android:id="@+id/show_game_finish">
+        <argument android:name="player"
+            app:nullable="false"
+            app:argType="com.theevilroot.vmsis.simulator.model.Player" />
     </action>
 
 </navigation>

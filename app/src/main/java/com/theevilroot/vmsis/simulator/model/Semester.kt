@@ -13,9 +13,15 @@ data class Semester(
         sessionsCount(player, 0),
         requiredPerformance(player, 0))
 
-    operator fun plus(player: Player): Semester {
+    operator fun plus(pp: Pair<Player, Boolean>): Semester {
+        val (player, isFinished) = pp
+        if (isFinished) {
+            val newIndex = index + 1
+            return Semester(newIndex,
+                    sessionsCount(player, newIndex),
+                    requiredPerformance(player, newIndex))
+        }
         return this
-        TODO("Update semester")
     }
 
     companion object {

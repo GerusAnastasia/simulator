@@ -3,7 +3,11 @@ package com.theevilroot.vmsis.simulator.session
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.lifecycle.*
+import androidx.navigation.findNavController
+import androidx.navigation.navOptions
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -67,15 +71,16 @@ class SessionViewModel (private val database: ISimulatorDatabase) : ViewModel() 
 class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
 
     private val database by instance<ISimulatorDatabase>()
-    private val viewModel by createViewModel()
-    private val player by getPlayer()
+    private val viewModel by createViewModel<SessionViewModel> { database }
+    private val player by fromArgs<Player>("player")
 
     private val adapter: ActionsAdapter by createAdapter()
     private var session: Session? = null
 
     override fun View.onView() {
         with(actions_list) {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = GridLayoutManager(context, 2,
+                    GridLayoutManager.HORIZONTAL, false)
             adapter = this@SessionFragment.adapter
         }
 
@@ -86,13 +91,16 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
             if (it.nextSession != null) {
                 viewModel.playerData.postValue(it.nextSession.player)
             } else {
-                Snackbar.make(requireView(),
-                    "${it.actionResult} ${it.nextSession}", Snackbar.LENGTH_INDEFINITE).show()
+                findNavController().navigate(R.id.fragment_game_finish,
+                        bundleOf("player" to player),
+                        navOptions { launchSingleTop = true })
             }
         })
     }
 
     override fun onChanged(t: Session) {
+        session = t
+
         semester_title.text = "${t.semester.index + 1} семестр"
         session_title.text = "День ${t.sessionIndex + 1}/${t.semester.sessionsCount}"
 
@@ -103,16 +111,6 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
         session?.let {
             viewModel.updateData.postValue(it to it + action)
         }
-    }
-
-    private fun createViewModel() = lazy {
-        ViewModelProvider(this, CoreViewModelFactory(database))
-            .get(SessionViewModel::class.java)
-    }
-
-    private fun getPlayer() = lazy {
-        arguments?.getParcelable<Player>("player")
-            ?: throw RuntimeException("Session Fragment should have player as argument `player`")
     }
 
     private fun createAdapter() = lazy { ActionsAdapter(::onActionClicked) }
