@@ -8,19 +8,14 @@ import androidx.lifecycle.*
 import androidx.navigation.findNavController
 import androidx.navigation.navOptions
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import com.theevilroot.vmsis.simulator.R
 import com.theevilroot.vmsis.simulator.core.CoreFragment
-import com.theevilroot.vmsis.simulator.core.CoreViewModelFactory
-import com.theevilroot.vmsis.simulator.model.IAction
-import com.theevilroot.vmsis.simulator.model.Player
-import com.theevilroot.vmsis.simulator.model.Session
-import com.theevilroot.vmsis.simulator.model.SessionResult
+import com.theevilroot.vmsis.simulator.model.*
 import com.theevilroot.vmsis.simulator.model.db.ISimulatorDatabase
 import kotlinx.android.synthetic.main.f_session.*
 import kotlinx.android.synthetic.main.i_action.view.*
+import kotlinx.android.synthetic.main.i_stat.view.*
 import org.kodein.di.generic.instance
 
 class ActionHolder (itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -68,20 +63,63 @@ class SessionViewModel (private val database: ISimulatorDatabase) : ViewModel() 
     }
 }
 
+class StatHolder (itemView: View): RecyclerView.ViewHolder(itemView) {
+
+    fun bind(name: String, value: String) = with(itemView) {
+        stat_name.text = name
+        stat_value.text = value
+    }
+
+}
+
+class StatsAdapter : RecyclerView.Adapter<StatHolder>() {
+
+    private val stats = mutableListOf<Pair<String, String>>()
+
+    fun updateStats(list: List<Pair<String, String>>) {
+        stats.clear()
+        stats.addAll(list)
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StatHolder =
+        LayoutInflater.from(parent.context)
+            .inflate(R.layout.i_stat, parent, false)
+            .let(::StatHolder)
+
+    override fun onBindViewHolder(holder: StatHolder, position: Int) {
+        stats.getOrNull(position)
+            ?.let { (k, v) -> holder.bind(k, v) }
+    }
+
+    override fun getItemCount(): Int {
+        return stats.size
+    }
+
+}
+
 class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
 
     private val database by instance<ISimulatorDatabase>()
     private val viewModel by createViewModel<SessionViewModel> { database }
     private val player by fromArgs<Player>("player")
 
-    private val adapter: ActionsAdapter by createAdapter()
+    private val statsAdapter: StatsAdapter by createStatsAdapter()
+
+    private val actionsAdapter: ActionsAdapter by createActionsAdapter()
     private var session: Session? = null
 
     override fun View.onView() {
         with(actions_list) {
             layoutManager = GridLayoutManager(context, 2,
                     GridLayoutManager.HORIZONTAL, false)
-            adapter = this@SessionFragment.adapter
+            adapter = actionsAdapter
+        }
+
+        with(stats_list) {
+            layoutManager = GridLayoutManager(context, 3,
+                GridLayoutManager.HORIZONTAL, false)
+            adapter = statsAdapter
         }
 
         viewModel.sessionData.observe(this@SessionFragment, this@SessionFragment)
@@ -104,7 +142,8 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
         semester_title.text = "${t.semester.index + 1} семестр"
         session_title.text = "День ${t.sessionIndex + 1}/${t.semester.sessionsCount}"
 
-        adapter.updateData(t.actions)
+        actionsAdapter.updateData(t.actions)
+        statsAdapter.updateStats(t.stats.data)
     }
 
     private fun onActionClicked(action: IAction) {
@@ -113,5 +152,6 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
         }
     }
 
-    private fun createAdapter() = lazy { ActionsAdapter(::onActionClicked) }
+    private fun createActionsAdapter() = lazy { ActionsAdapter(::onActionClicked) }
+    private fun createStatsAdapter() = lazy { StatsAdapter() }
 }
