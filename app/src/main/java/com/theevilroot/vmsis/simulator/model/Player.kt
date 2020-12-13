@@ -2,6 +2,7 @@ package com.theevilroot.vmsis.simulator.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.google.gson.JsonObject
 
 data class Player(
     val id: Int,
@@ -15,6 +16,11 @@ data class Player(
         parcel.readInt()
     )
 
+    constructor(json: JsonObject):
+            this(json["id"].asInt,
+                json["name"].asString,
+                json["difficulty"].asInt)
+
     override fun describeContents(): Int {
         return id
     }
@@ -23,6 +29,12 @@ data class Player(
         dest.writeInt(id)
         dest.writeString(name)
         dest.writeInt(difficulty)
+    }
+
+    fun toJson(): JsonObject = JsonObject().apply {
+        addProperty("id", id)
+        addProperty("name", name)
+        addProperty("difficulty", difficulty)
     }
 
     companion object CREATOR : Parcelable.Creator<Player> {

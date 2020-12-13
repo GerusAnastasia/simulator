@@ -2,17 +2,17 @@ package com.theevilroot.vmsis.simulator.model.db
 
 import com.theevilroot.vmsis.simulator.model.*
 
-class MockDatabase : ISimulatorDatabase {
+open class CoreDatabase : ISimulatorDatabase {
 
     /**
      * Table with players (id as unique row)
      */
-    private val playerList: MutableList<Player> = mutableListOf()
+    protected val playerList: MutableList<Player> = mutableListOf()
 
     /**
      * Table with all the states (player id as unique row)
      */
-    private val stateList: MutableMap<Int, PersistentState> = mutableMapOf()
+    protected val stateList: MutableMap<Int, PersistentState> = mutableMapOf()
 
     override fun getPlayers(): List<Player> {
         return playerList
@@ -22,12 +22,20 @@ class MockDatabase : ISimulatorDatabase {
         playerList.add(player)
     }
 
+    protected open fun getPersistentState(playerId: Int): PersistentState? {
+        return stateList[playerId]
+    }
+
+    protected open fun setPersistentState(playerId: Int, persistentState: PersistentState) {
+        stateList[playerId] = persistentState
+    }
+
     /**
      * Create session from player by it's persistent state
      * or create a new session without persistent state
      */
     override fun getSession(player: Player): Session {
-        val persistentState = stateList[player.id]
+        val persistentState = getPersistentState(player.id)
             ?: return Session(player)
 
         with(persistentState) {
@@ -43,7 +51,7 @@ class MockDatabase : ISimulatorDatabase {
     }
 
     override fun getGameInfo(player: Player): GameInfo? {
-        val persistentState = stateList[player.id]
+        val persistentState = getPersistentState(player.id)
                 ?: return null
 
         val newPlayer = Player(persistentState.playerId,
@@ -100,7 +108,7 @@ class MockDatabase : ISimulatorDatabase {
                 )
             }
         }
-        stateList[persistentState.playerId] = persistentState
+        setPersistentState(persistentState.playerId, persistentState)
     }
 
 }
