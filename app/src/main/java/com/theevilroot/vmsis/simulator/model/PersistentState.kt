@@ -1,6 +1,7 @@
 package com.theevilroot.vmsis.simulator.model
 
 import com.google.gson.JsonObject
+import com.theevilroot.vmsis.simulator.model.actions.BaseAction
 
 data class PersistentState(
     val playerId: Int,
@@ -27,7 +28,13 @@ data class PersistentState(
                 json["requiredPerformance"].asInt,
                 json["health"].asInt,
                 json["performance"].asInt,
-                emptyList(),
+                listOf(
+                    BaseAction("Die", -101, 0),
+                    BaseAction("Expel", 0, -101),
+                    BaseAction("Nothing", 0, 0),
+                    BaseAction("+Half", 50, 50),
+                    BaseAction("-Half", -50, -50)
+                ),
                 json["sessionStartTime"].asLong,
                 json["currentSessionIndex"].asInt,
                 json["isFinished"].asBoolean,
