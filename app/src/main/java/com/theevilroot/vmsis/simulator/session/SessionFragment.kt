@@ -15,6 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.theevilroot.vmsis.simulator.R
 import com.theevilroot.vmsis.simulator.core.CoreFragment
+import com.theevilroot.vmsis.simulator.core.StatsAdapter
+import com.theevilroot.vmsis.simulator.core.createStatsAdapter
+import com.theevilroot.vmsis.simulator.core.setupAsStats
 import com.theevilroot.vmsis.simulator.model.*
 import com.theevilroot.vmsis.simulator.model.db.ISimulatorDatabase
 import kotlinx.android.synthetic.main.f_session.*
@@ -89,41 +92,6 @@ class SessionViewModel (private val database: ISimulatorDatabase) : ViewModel() 
     }
 }
 
-class StatHolder (itemView: View): RecyclerView.ViewHolder(itemView) {
-
-    fun bind(name: String, value: String) = with(itemView) {
-        stat_name.text = name
-        stat_value.text = value
-    }
-
-}
-
-class StatsAdapter : RecyclerView.Adapter<StatHolder>() {
-
-    private val stats = mutableListOf<Pair<String, String>>()
-
-    fun updateStats(list: List<Pair<String, String>>) {
-        stats.clear()
-        stats.addAll(list)
-        notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StatHolder =
-        LayoutInflater.from(parent.context)
-            .inflate(R.layout.i_stat, parent, false)
-            .let(::StatHolder)
-
-    override fun onBindViewHolder(holder: StatHolder, position: Int) {
-        stats.getOrNull(position)
-            ?.let { (k, v) -> holder.bind(k, v) }
-    }
-
-    override fun getItemCount(): Int {
-        return stats.size
-    }
-
-}
-
 class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
 
     private val database by instance<ISimulatorDatabase>()
@@ -142,12 +110,7 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
             adapter = actionsAdapter
         }
 
-        with(stats_list) {
-            layoutManager = GridLayoutManager(context, 3,
-                GridLayoutManager.VERTICAL, false)
-            adapter = statsAdapter
-        }
-
+        stats_list.setupAsStats(statsAdapter)
         viewModel.sessionData.observe(this@SessionFragment, this@SessionFragment)
         viewModel.playerData.postValue(player)
 
@@ -180,5 +143,4 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
     }
 
     private fun createActionsAdapter() = lazy { ActionsAdapter(::onActionClicked) }
-    private fun createStatsAdapter() = lazy { StatsAdapter() }
 }

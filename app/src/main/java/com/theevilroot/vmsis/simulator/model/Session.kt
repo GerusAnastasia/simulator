@@ -40,12 +40,12 @@ data class Session (
         0,
         nextActions(Semester(player), player, 0))
 
-    enum class ActionResult {
-        NEXT_SESSION,
-        NEXT_SEMESTER,
-        DIED,
-        EXPELLED,
-        GRADUATED
+    enum class ActionResult(val description: String) {
+        NEXT_SESSION("Stub"),
+        NEXT_SEMESTER("Stub"),
+        DIED("Died"),
+        EXPELLED("Expelled"),
+        GRADUATED("Graduated!")
     }
 
     operator fun plus(action: Action): SessionResult {
