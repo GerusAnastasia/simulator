@@ -79,7 +79,7 @@ class MenuViewModel (private val database: ISimulatorDatabase) : ViewModel() {
 
     private val playersData: MutableLiveData<List<Player>?> = MutableLiveData()
     val gamesData = playersData.switchMap {
-        liveData {
+        liveData<List<GameInfo>?> {
             if (it == null)
                 emit(null)
             else emit(it.mapNotNull { database.getGameInfo(it) })

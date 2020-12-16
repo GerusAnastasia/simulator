@@ -1,7 +1,7 @@
 package com.theevilroot.vmsis.simulator.model
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.theevilroot.vmsis.simulator.model.actions.BaseAction
 
 data class PersistentState(
     val playerId: Int,
@@ -12,7 +12,9 @@ data class PersistentState(
     val requiredPerformance: Int,
     val health: Int,
     val performance: Int,
-    val currentActions: List<IAction>,
+    val saturation: Int,
+    val money: Int,
+    val currentActions: List<Action>,
     val sessionStartTime: Long,
     val currentSessionIndex: Int,
     val isFinished: Boolean,
@@ -28,13 +30,11 @@ data class PersistentState(
                 json["requiredPerformance"].asInt,
                 json["health"].asInt,
                 json["performance"].asInt,
-                listOf(
-                    BaseAction("Die", -101, 0),
-                    BaseAction("Expel", 0, -101),
-                    BaseAction("Nothing", 0, 0),
-                    BaseAction("+Half", 50, 50),
-                    BaseAction("-Half", -50, -50)
-                ),
+                json["saturation"].asInt,
+                json["money"].asInt,
+                json["actions"].asJsonArray.mapNotNull {
+                   Action.valueOf(it.asString)
+                },
                 json["sessionStartTime"].asLong,
                 json["currentSessionIndex"].asInt,
                 json["isFinished"].asBoolean,
@@ -50,10 +50,14 @@ data class PersistentState(
         addProperty("requiredPerformance", requiredPerformance)
         addProperty("health", health)
         addProperty("performance", performance)
+        addProperty("saturation", saturation)
+        addProperty("money", money)
         addProperty("sessionStartTime", sessionStartTime)
         addProperty("currentSessionIndex", currentSessionIndex)
         addProperty("isFinished", isFinished)
         addProperty("result", result.name)
+        add("actions", currentActions.map { it.name }
+            .fold(JsonArray()) { a, b -> a.add(b); a })
     }
 
 }

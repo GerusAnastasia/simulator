@@ -40,7 +40,7 @@ open class CoreDatabase : ISimulatorDatabase {
 
         with(persistentState) {
             val semester = Semester(currentSemester, semestersSessions, requiredPerformance)
-            val stats = Stats(health, performance)
+            val stats = Stats(health, performance, saturation, money)
             val newPlayer = Player(playerId, playerName, difficulty)
             val metrics = Metrics()
 
@@ -57,7 +57,8 @@ open class CoreDatabase : ISimulatorDatabase {
         val newPlayer = Player(persistentState.playerId,
                 persistentState.playerName,
                 persistentState.difficulty)
-        val stats = Stats(persistentState.health, persistentState.performance)
+        val stats = Stats(persistentState.health, persistentState.performance,
+            persistentState.saturation, persistentState.money)
         val semester = Semester(persistentState.currentSemester,
                 persistentState.semestersSessions,
                 persistentState.requiredPerformance)
@@ -82,6 +83,8 @@ open class CoreDatabase : ISimulatorDatabase {
                     semester.requiredPerformance,
                     stats.health,
                     stats.performance,
+                    stats.saturation,
+                    stats.money,
                     actions,
                     startTime,
                     sessionIndex,
@@ -100,6 +103,8 @@ open class CoreDatabase : ISimulatorDatabase {
                     semester.requiredPerformance,
                     stats.health,
                     stats.performance,
+                    stats.saturation,
+                    stats.money,
                     actions,
                     startTime,
                     sessionIndex,

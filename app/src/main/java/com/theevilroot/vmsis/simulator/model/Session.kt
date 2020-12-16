@@ -1,7 +1,6 @@
 package com.theevilroot.vmsis.simulator.model
 
 import android.util.Log
-import com.theevilroot.vmsis.simulator.model.actions.BaseAction
 
 data class SessionResult (
     val nextSession: Session?,
@@ -15,7 +14,7 @@ data class Session (
     val metrics: Metrics,
     val stats: Stats,
     val sessionIndex: Int,
-    val actions: List<IAction>
+    val actions: List<Action>
 ) {
 
     constructor(prev: Session,
@@ -23,7 +22,7 @@ data class Session (
                 metrics: Metrics,
                 stats: Stats,
                 sessionIndex: Int,
-                actions: List<IAction>): this(
+                actions: List<Action>): this(
         prev.player,
         System.currentTimeMillis(),
         semester,
@@ -37,7 +36,7 @@ data class Session (
         System.currentTimeMillis(),
         Semester(player),
         Metrics(),
-        Stats(100, 100),
+        Stats(),
         0,
         nextActions(Semester(player), player, 0))
 
@@ -49,8 +48,8 @@ data class Session (
         GRADUATED
     }
 
-    operator fun plus(action: IAction): SessionResult {
-        val newStats = action.apply(player, stats)
+    operator fun plus(action: Action): SessionResult {
+        val newStats = stats + action
         val isSemesterFinished = sessionIndex + 1 == semester.sessionsCount
         val result = checkStats(isSemesterFinished)
 
@@ -80,14 +79,8 @@ data class Session (
     }
 
     companion object {
-        fun nextActions(semester: Semester, player: Player, sessionIndex: Int): List<IAction> {
-            return listOf(
-                BaseAction("Die", -101, 0),
-                BaseAction("Expel", 0, -101),
-                BaseAction("Nothing", 0, 0),
-                BaseAction("+Half", 50, 50),
-                BaseAction("-Half", -50, -50)
-            )
+        fun nextActions(semester: Semester, player: Player, sessionIndex: Int): List<Action> {
+            return Action.values().toList().shuffled().take(4)
             TODO("Generate actions")
         }
     }

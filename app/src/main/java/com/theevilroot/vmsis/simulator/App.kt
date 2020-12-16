@@ -19,6 +19,7 @@ class App : Application(), KodeinAware {
         import(androidXModule(this@App))
 
         bind<Gson>() with provider { GsonBuilder().setPrettyPrinting().create() }
-        bind<ISimulatorDatabase>() with singleton { FileDatabase(instance(), filesDir, "saves") }
+//        bind<ISimulatorDatabase>() with singleton { FileDatabase(instance(), filesDir, "saves") }
+        bind<ISimulatorDatabase>() with singleton { CoreDatabase() }
     }
 }

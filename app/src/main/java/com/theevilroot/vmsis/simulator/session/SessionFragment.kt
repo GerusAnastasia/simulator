@@ -1,14 +1,18 @@
 package com.theevilroot.vmsis.simulator.session
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.lifecycle.*
 import androidx.navigation.findNavController
 import androidx.navigation.navOptions
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.theevilroot.vmsis.simulator.R
 import com.theevilroot.vmsis.simulator.core.CoreFragment
 import com.theevilroot.vmsis.simulator.model.*
@@ -19,17 +23,37 @@ import kotlinx.android.synthetic.main.i_stat.view.*
 import org.kodein.di.generic.instance
 
 class ActionHolder (itemView: View): RecyclerView.ViewHolder(itemView) {
-    fun bind(action: IAction, listener: (IAction)->Unit) = with(itemView) {
-        name.text = action.getDescription()
-        setOnClickListener{ listener(action) }
+    fun bind(action: Action, denyReason: String?, listener: (Action)->Unit) = with(itemView) {
+        name.text = action.description
+        val allow = denyReason == null
+        if (allow) {
+            image_view.setImageResource(R.drawable.ic_round_check_24)
+            image_view.imageTintList = ColorStateList.valueOf(Color.GREEN)
+            setOnClickListener{ listener(action) }
+        } else {
+            image_view.setImageResource(R.drawable.ic_round_close_24)
+            image_view.imageTintList = ColorStateList.valueOf(Color.RED)
+            image_view.setOnClickListener {
+                Toast.makeText(context, "$denyReason", Toast.LENGTH_SHORT).show()
+            }
+            setOnClickListener {
+                Snackbar.make(rootView, "Нельзя выполнить это действие", Snackbar.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 }
 
-class ActionsAdapter (private val listener: (IAction)->Unit): RecyclerView.Adapter<ActionHolder>() {
+class ActionsAdapter (private val listener: (Action)->Unit): RecyclerView.Adapter<ActionHolder>() {
 
-    private val data: MutableList<IAction> = mutableListOf()
+    private val data: MutableList<Action> = mutableListOf()
+    var stats: Stats? = null
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
 
-    fun updateData(list: List<IAction>) {
+    fun updateData(list: List<Action>) {
         data.clear()
         data.addAll(list.toTypedArray())
         notifyDataSetChanged()
@@ -41,7 +65,9 @@ class ActionsAdapter (private val listener: (IAction)->Unit): RecyclerView.Adapt
             .let(::ActionHolder)
 
     override fun onBindViewHolder(holder: ActionHolder, position: Int) {
-        data[position].let { holder.bind(it, listener) }
+        data[position].let {
+            holder.bind(it, stats?.denyReason(it), listener)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -118,7 +144,7 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
 
         with(stats_list) {
             layoutManager = GridLayoutManager(context, 3,
-                GridLayoutManager.HORIZONTAL, false)
+                GridLayoutManager.VERTICAL, false)
             adapter = statsAdapter
         }
 
@@ -143,10 +169,11 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
         session_title.text = "День ${t.sessionIndex + 1}/${t.semester.sessionsCount}"
 
         actionsAdapter.updateData(t.actions)
+        actionsAdapter.stats = t.stats
         statsAdapter.updateStats(t.stats.data)
     }
 
-    private fun onActionClicked(action: IAction) {
+    private fun onActionClicked(action: Action) {
         session?.let {
             viewModel.updateData.postValue(it to it + action)
         }
