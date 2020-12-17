@@ -29,7 +29,7 @@ data class Semester(
             return Random.nextInt(7, 12 + player.difficulty * 7 + index * 2)
         }
         fun requiredPerformance(player: Player, index: Int): Int {
-            return 3 + player.difficulty * 2 + index / 2
+            return 10 * (3 + player.difficulty * 2 + index / 2)
         }
 
     }

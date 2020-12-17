@@ -17,13 +17,19 @@ data class Stats (
             "Money" to "$money"
         )
 
-    operator fun plus(action: Action): Stats {
+    fun plus(data: Pair<Action, Player>): Stats {
+        val (action, player) = data
         return with(action) {
-            val healthMod = if ((saturation + action.saturationDelta) < 0) -10 else 0
+            val satMod = player.difficulty * -5
+            val sat = saturation + saturationDelta + satMod
+
+            val healthMod = if ((saturation + action.saturationDelta + satMod) < 0) player.difficulty * -5 - 5 else 0
+            val perfMod = if (action.performanceDelta <= 0) player.difficulty * -5 - 5 else 0
+
             Stats(
                 health + action.healthDelta + healthMod,
-                performance + action.performanceDelta,
-                saturation + saturationDelta,
+                performance + action.performanceDelta + perfMod,
+                sat,
                 money + action.moneyDelta
             )
         }

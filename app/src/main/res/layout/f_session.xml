@@ -23,9 +23,18 @@
         android:textColor="@android:color/black"
         android:layout_below="@id/semester_title"/>
 
+    <TextView
+        android:id="@+id/required_performance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Необходимая успеваемость -- 50"
+        android:textSize="16sp"
+        android:textAlignment="center"
+        android:layout_below="@id/session_title"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stats_list"
-        android:layout_below="@id/session_title"
+        android:layout_below="@id/required_performance"
         android:layout_centerHorizontal="true"
         android:layout_width="match_parent"
         android:layout_margin="16dp"

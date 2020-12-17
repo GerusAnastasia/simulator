@@ -49,7 +49,7 @@ data class Session (
     }
 
     operator fun plus(action: Action): SessionResult {
-        val newStats = stats + action
+        val newStats = stats.plus(action to player)
         val isSemesterFinished = sessionIndex + 1 == semester.sessionsCount
         val result = checkStats(isSemesterFinished)
 

@@ -134,6 +134,13 @@ class SessionFragment : CoreFragment(R.layout.f_session), Observer<Session> {
         actionsAdapter.updateData(t.actions)
         actionsAdapter.stats = t.stats
         statsAdapter.updateStats(t.stats.data)
+
+        required_performance.visibility = if (t.sessionIndex >= t.semester.sessionsCount - 3) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        required_performance.text = "Необходимая успеваемость -- ${t.semester.requiredPerformance}"
     }
 
     private fun onActionClicked(action: Action) {
