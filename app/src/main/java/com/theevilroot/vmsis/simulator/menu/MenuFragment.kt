@@ -78,17 +78,13 @@ class MenuItemAdapter (
 class MenuViewModel (private val database: ISimulatorDatabase) : ViewModel() {
 
     private val playersData: MutableLiveData<List<Player>?> = MutableLiveData()
-    val gamesData = playersData.switchMap {
-        liveData<List<GameInfo>?> {
-            if (it == null)
-                emit(null)
-            else emit(it.mapNotNull { database.getGameInfo(it) })
-        }
+    val gamesData = playersData.map {
+        it?.let { listOf(*it.toTypedArray()) }?.mapNotNull { database.getGameInfo(it) }
     }
 
     val startGamePlayer: MutableLiveData<Player> = MutableLiveData()
-    val stateData = startGamePlayer.switchMap {
-        liveData { emit(database.getGameInfo(it)) }
+    val stateData = startGamePlayer.map {
+        database.getGameInfo(it)
     }
 
     fun updatePlayersList() {

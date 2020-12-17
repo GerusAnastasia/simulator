@@ -51,7 +51,7 @@ data class Session (
     operator fun plus(action: Action): SessionResult {
         val newStats = stats.plus(action to player)
         val isSemesterFinished = sessionIndex + 1 == semester.sessionsCount
-        val result = checkStats(isSemesterFinished)
+        val result = newStats.checkStats(isSemesterFinished)
 
         if (result in setOf(ActionResult.GRADUATED, ActionResult.DIED, ActionResult.EXPELLED))
             return SessionResult(null, result)
@@ -65,17 +65,17 @@ data class Session (
         return SessionResult(newSession, result).also { Log.d("RESULT", it.toString()) }
     }
 
-    private fun checkStats(isSemesterFinished: Boolean): ActionResult = with(stats) {
+    private fun Stats.checkStats(isSemesterFinished: Boolean): ActionResult {
         if (health <= 0) {
-            return@with ActionResult.DIED
+            return ActionResult.DIED
         }
         if (isSemesterFinished && performance < semester.requiredPerformance) {
-            return@with ActionResult.EXPELLED
+            return ActionResult.EXPELLED
         }
         if (isSemesterFinished && semester.index == 7) {
-            return@with ActionResult.GRADUATED
+            return ActionResult.GRADUATED
         }
-        return@with if (isSemesterFinished) ActionResult.NEXT_SEMESTER else ActionResult.NEXT_SESSION
+        return if (isSemesterFinished) ActionResult.NEXT_SEMESTER else ActionResult.NEXT_SESSION
     }
 
     companion object {

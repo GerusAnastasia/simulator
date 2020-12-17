@@ -81,14 +81,14 @@ class ActionsAdapter (private val listener: (Action)->Unit): RecyclerView.Adapte
 
 class SessionViewModel (private val database: ISimulatorDatabase) : ViewModel() {
     val playerData: MutableLiveData<Player> = MutableLiveData()
-    val sessionData = playerData.switchMap {
-        liveData { emit(database.getSession(it)) }
+    val sessionData = playerData.map {
+        database.getSession(it)
     }
 
     val updateData: MutableLiveData<Pair<Session, SessionResult>> = MutableLiveData()
-    val nextData = updateData.switchMap { (session, result) ->
+    val nextData = updateData.map { (session, result) ->
         database.updatePersistentState(session, result)
-        liveData { emit(result) }
+        result
     }
 }
 
